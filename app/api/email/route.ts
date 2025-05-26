@@ -1,59 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-
-async function getApplicationToken() {
-  const tokenEndpoint = `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/oauth2/v2.0/token`;
-
-  const response = await fetch(tokenEndpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: process.env.AZURE_AD_CLIENT_ID!,
-      client_secret: process.env.AZURE_AD_CLIENT_SECRET!,
-      scope: "https://graph.microsoft.com/.default",
-      grant_type: "client_credentials",
-    }),
-  });
-
-  const data = await response.json();
-  return data.access_token;
-}
-
-async function sendEmail(
-  to: string,
-  subject: string,
-  html: string,
-  accessToken: string
-) {
-  const response = await fetch(
-    "https://graph.microsoft.com/v1.0/users/tickets@theattention.network/sendMail",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: {
-          subject,
-          body: {
-            contentType: "HTML",
-            content: html,
-          },
-          toRecipients: [
-            {
-              emailAddress: { address: to },
-            },
-          ],
-        },
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to send email: ${error}`);
-  }
-}
+import { getApplicationToken } from "@/app/lib/auth";
+import { sendEmail } from "@/app/lib/email";
+import { recipients } from "@//recipients";
 
 function formatSummaryAsHTML(events: any[]) {
   return `
@@ -133,53 +81,19 @@ function formatSummaryAsHTML(events: any[]) {
   `;
 }
 
-async function getAllUsers(token: string) {
-  const res = await fetch(
-    "https://graph.microsoft.com/v1.0/users?$select=id,displayName,mail,userPrincipalName",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  if (!res.ok) throw new Error("Failed to fetch users");
-  const data = await res.json();
-  return data.value; // array of users
-}
-
 export async function GET(req: NextRequest) {
   try {
     const token = await getApplicationToken();
 
-    const summaryRes = await fetch("http://theattention.network/api/events/summary");
+    const summaryRes = await fetch(
+      "https://theattention.network/api/events/summary"
+    );
     const summary = await summaryRes.json();
 
     const htmlMessage = `
       <h3>Attention Network Event Summary</h3>
       ${formatSummaryAsHTML(summary)}
     `;
-
-    const recipients = [
-      "ayaz@theattention.network",
-      "fahad@theattention.network",
-      "fahim@theattention.network",
-      "hersa@theattention.network",
-      "Kazi@theattention.network",
-      "khadem@theattention.network",
-      "mashfi@theattention.network",
-      "Mashkhawath@theattention.network",
-      "mushfiqur@theattention.network",
-      "naveed@theattention.network",
-      "raiyan@theattention.network",
-      "ramis@theattention.network",
-      "safwan@theattention.network",
-      "sarfaraj@theattention.network",
-      "sayma@theattention.network",
-      "Shejuti@theattention.network",
-      "shishir@theattention.network",
-      "yousufi@theattention.network",
-      "zobaeralam@theattention.network",
-    ];
 
     for (const email of recipients) {
       try {
