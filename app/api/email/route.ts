@@ -100,6 +100,7 @@ function formatSummaryAsHTML(events: any[]) {
           <th> ETA</th>
           <th> Capacity</th>
           <th> Sold</th>
+          <th> Sold %</th>
         </tr>
       </thead>
       <tbody>
