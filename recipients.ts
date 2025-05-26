@@ -16,6 +16,7 @@ export const recipients = [
       "sayma@theattention.network",
       "Shejuti@theattention.network",
       "shishir@theattention.network",
+      "tanveer@theattention.network",
       "yousufi@theattention.network",
       "zobaeralam@theattention.network",
     ];
