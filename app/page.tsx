@@ -16,6 +16,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState<User | null>(null);
+  const [viewUserId, setViewUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (session?.error === "RefreshAccessTokenError") {
@@ -23,11 +24,14 @@ export default function Home() {
       return;
     }
 
-    if (session?.accessToken && session.user?.email) {
+    if (session?.accessToken && (session.user?.email || viewUserId)) {
       setError(null);
       setLoading(true);
-      console.log("Fetching tasks for user:", session.user.email);
-      fetch(`/api/tasks?userId=${encodeURIComponent(session.user.email)}`)
+      const targetUserId = viewUserId || session.user?.email;
+      if (!targetUserId) return;
+      
+      console.log("Fetching tasks for user:", targetUserId);
+      fetch(`/api/tasks?userId=${targetUserId}`)
         .then((res) => res.json())
         .then((data: TasksResponse | ErrorResponse) => {
           if ('error' in data) {
@@ -45,7 +49,7 @@ export default function Home() {
           setLoading(false);
         });
     }
-  }, [session]);
+  }, [session, viewUserId]);
 
   const userDisplayName = userData?.displayName || session?.user?.name || "User";
 
@@ -108,14 +112,52 @@ export default function Home() {
   };
   return (
     <main className="p-10">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Tasks for {userDisplayName}</h1>
-        <button 
-          onClick={() => signOut()} 
-          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Logout
-        </button>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Tasks for {userDisplayName}</h1>
+          <div className="space-x-2">
+            {viewUserId && (
+              <button
+                onClick={() => setViewUserId(null)}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                View My Tasks
+              </button>
+            )}
+            <button 
+              onClick={() => signOut()} 
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+        {!viewUserId && (
+          <div className="flex gap-2 items-center">
+            <input
+              type="text"
+              placeholder="Enter user email to view their tasks"
+              className="flex-1 p-2 border rounded"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const input = e.currentTarget;
+                  setViewUserId(input.value);
+                  input.value = '';
+                }
+              }}
+            />
+            <button
+              onClick={() => {
+                const input = document.querySelector('input') as HTMLInputElement;
+                setViewUserId(input.value);
+                input.value = '';
+              }}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              View Tasks
+            </button>
+          </div>
+        )}
       </div>
       
       {loading ? (
