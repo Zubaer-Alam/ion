@@ -7,6 +7,8 @@ export interface User {
 export interface Task {
   id: string;
   title: string;
+  planName: string;
+  bucketName: string;
   percentComplete: number;
   dueDateTime: string | null;
   priority: number;
@@ -19,6 +21,7 @@ export interface Task {
   };
   assignments: Record<string, any>;
   assignedTo: User[];
+  teamsLink?: string;
 }
 
 export interface TasksResponse {

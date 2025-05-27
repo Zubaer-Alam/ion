@@ -29,12 +29,10 @@ export default function Home() {
       setLoading(true);
       const targetUserId = viewUserId || session.user?.email;
       if (!targetUserId) return;
-      
-      console.log("Fetching tasks for user:", targetUserId);
       fetch(`/api/tasks?userId=${targetUserId}`)
         .then((res) => res.json())
         .then((data: TasksResponse | ErrorResponse) => {
-          if ('error' in data) {
+          if ("error" in data) {
             setError(data.error);
           } else {
             setTasks(data.tasks);
@@ -49,14 +47,15 @@ export default function Home() {
           setLoading(false);
         });
     }
-  }, [session, viewUserId]);
+  }, [session]);
 
-  const userDisplayName = userData?.displayName || session?.user?.name || "User";
+  const userDisplayName =
+    userData?.displayName || session?.user?.name || "User";
 
   if (!session) {
     return (
       <main className="p-10">
-        <button 
+        <button
           onClick={() => signIn("azure-ad")}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
@@ -69,7 +68,10 @@ export default function Home() {
   if (error) {
     return (
       <main className="p-10">
-        <button onClick={() => signOut()} className="mb-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+        <button
+          onClick={() => signOut()}
+          className="mb-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+        >
           Logout
         </button>
         <div className="text-red-500 font-semibold">{error}</div>
@@ -124,42 +126,44 @@ export default function Home() {
                 View My Tasks
               </button>
             )}
-            <button 
-              onClick={() => signOut()} 
-              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            <button
+              onClick={() => signOut()}
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mb-4 rounded"
             >
               Logout
             </button>
           </div>
         </div>
-        {!viewUserId && (
+        {/* {!viewUserId && (
           <div className="flex gap-2 items-center">
             <input
               type="text"
               placeholder="Enter user email to view their tasks"
               className="flex-1 p-2 border rounded"
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   const input = e.currentTarget;
                   setViewUserId(input.value);
-                  input.value = '';
+                  input.value = "";
                 }
               }}
             />
             <button
               onClick={() => {
-                const input = document.querySelector('input') as HTMLInputElement;
+                const input = document.querySelector(
+                  "input"
+                ) as HTMLInputElement;
                 setViewUserId(input.value);
-                input.value = '';
+                input.value = "";
               }}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
               View Tasks
             </button>
           </div>
-        )}
+        )} */}
       </div>
-      
+
       {loading ? (
         <div className="text-center py-8">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -175,47 +179,76 @@ export default function Home() {
         </div>
       ) : (
         <table className="min-w-full border">
-        <thead>
-          <tr>
-            <th className="border p-2">Title</th>
-            <th className="border p-2">Status</th>
-            <th className="border p-2">Due Date</th>
-            <th className="border p-2">Priority</th>
-            <th className="border p-2">Assigned To</th>
-            <th className="border p-2">Created By</th>
-            <th className="border p-2">Created Date</th>
-            <th className="border p-2">Completed Date</th>
-            <th className="border p-2">Active</th>
-            <th className="border p-2">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tasks.map((task) => (
-            <tr key={task.id}>
-              <td className="border p-2">{task.title}</td>
-              <td className={`border p-2 ${getStatusColor(task.percentComplete)}`}>
-                {task.percentComplete}%
-              </td>
-              <td className="border p-2">{formatDate(task.dueDateTime)}</td>
-              <td className={`border p-2 ${getPriorityColor(task.priority)}`}>
-                {task.priority === 9 ? "High" : task.priority === 5 ? "Medium" : task.priority === 1 ? "Low" : "None"}
-              </td>
-              <td className="border p-2">
-                {task.assignedTo.map(user => user.displayName).join(", ") || "Unassigned"}
-              </td>
-              <td className="border p-2">
-                {task.createdBy?.user?.displayName || "Unknown"}
-              </td>
-              <td className="border p-2">{formatDate(task.createdDateTime)}</td>
-              <td className="border p-2">
-                {formatDate(task.completedDateTime)}
-              </td>
-              <td className="border p-2">{task.activeChecklistItemCount}</td>
-              <td className="border p-2">{task.checklistItemCount}</td>
+          <thead>
+            <tr>
+              <th className="border p-2">Link</th>
+              <th className="border p-2">Status</th>
+              <th className="border p-2">Priority</th>
+              <th className="border p-2">Plan</th>
+              <th className="border p-2">Bucket</th>
+              <th className="border p-2">Title</th>
+              <th className="border p-2">Due Date</th>
+              <th className="border p-2">Assigned To</th>
+              <th className="border p-2">Created By</th>
+              <th className="border p-2">Created Date</th>
+              <th className="border p-2">Completed Date</th>
+              <th className="border p-2">Active</th>
+              <th className="border p-2">Total</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {tasks.map((task) => (
+              <tr key={task.id}>
+                <td className="border p-2">
+                  <a
+                    href={task.teamsLink}
+                    target="_blank"
+                    title="Open in Teams"
+                  >
+                    🔗
+                  </a>
+                </td>
+                <td
+                  className={`border p-2 ${getStatusColor(
+                    task.percentComplete
+                  )}`}
+                >
+                  {task.percentComplete}%
+                </td>
+                <td className={`border p-2 ${getPriorityColor(task.priority)}`}>
+                  {task.priority === 9
+                    ? "High"
+                    : task.priority === 5
+                    ? "Medium"
+                    : task.priority === 1
+                    ? "Low"
+                    : "None"}
+                </td>
+                <td className="border p-2">{task.planName}</td>
+                <td className="border p-2">{task.bucketName}</td>
+                <td className="border p-2">{task.title}</td>
+
+                <td className="border p-2">{formatDate(task.dueDateTime)}</td>
+
+                <td className="border p-2">
+                  {task.assignedTo.map((user) => user.displayName).join(", ") ||
+                    "Unassigned"}
+                </td>
+                <td className="border p-2">
+                  {task.createdBy?.user?.displayName || "Unknown"}
+                </td>
+                <td className="border p-2">
+                  {formatDate(task.createdDateTime)}
+                </td>
+                <td className="border p-2">
+                  {formatDate(task.completedDateTime)}
+                </td>
+                <td className="border p-2">{task.activeChecklistItemCount}</td>
+                <td className="border p-2">{task.checklistItemCount}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </main>
   );
