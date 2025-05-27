@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { Task, User, TasksResponse } from "@/app/types";
 import { getApplicationToken } from "@/app/lib/auth";
+import { fetchUserDetails, fetchUsersByIds } from "@/app/lib/user";
+import {
+  fetchUserPlans,
+  fetchBucketsForPlan,
+  fetchTasksForPlan,
+} from "@/app/lib/planner";
 
 interface PlannerPlan {
   id: string;
@@ -11,90 +17,6 @@ interface PlannerPlan {
 
 interface GraphResponse<T> {
   value: T[];
-}
-
-async function fetchUserDetails(userId: string, token: string) {
-  const userResponse = await fetch(
-    `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(userId)}`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-
-  if (!userResponse.ok) {
-    throw new Error(`Failed to fetch user: ${userResponse.statusText}`);
-  }
-  return userResponse.json();
-}
-
-async function fetchUserPlans(userId: string, token: string) {
-  const plansResponse = await fetch(
-    `${process.env.NEXT_PUBLIC_GRAPH_API_ENDPOINT}/v1.0/users/${userId}/planner/plans`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-
-  if (!plansResponse.ok) {
-    throw new Error(`Failed to fetch plans: ${plansResponse.statusText}`);
-  }
-
-  return plansResponse.json() as Promise<GraphResponse<PlannerPlan>>;
-}
-
-async function fetchTasksForPlan(planId: string, token: string) {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_GRAPH_API_ENDPOINT}/v1.0/planner/plans/${planId}/tasks`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-
-  if (!response.ok) {
-    console.error(
-      `Failed to fetch tasks for plan ${planId}: ${response.statusText}`
-    );
-    return { value: [] };
-  }
-
-  return response.json();
-}
-
-async function fetchUsersByIds(userIds: Set<string>, token: string) {
-  const userResults = await Promise.all(
-    Array.from(userIds).map((id) =>
-      fetch(`${process.env.NEXT_PUBLIC_GRAPH_API_ENDPOINT}/v1.0/users/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then(async (r) => {
-        if (!r.ok) {
-          console.error(`Failed to fetch user ${id}: ${r.statusText}`);
-          return null;
-        }
-        return r.json() as Promise<User>;
-      })
-    )
-  );
-
-  return new Map(userResults.filter(Boolean).map((user) => [user!.id, user]));
-}
-
-async function fetchBucketsForPlan(planId: string, token: string) {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_GRAPH_API_ENDPOINT}/v1.0/planner/plans/${planId}/buckets`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-
-  if (!response.ok) {
-    console.warn(
-      `Failed to fetch buckets for plan ${planId}: ${response.statusText}`
-    );
-    return [];
-  }
-
-  const data = await response.json();
-  return data.value ?? [];
 }
 
 export async function GET(req: NextRequest) {

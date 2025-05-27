@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApplicationToken } from "@/app/lib/auth";
 import { sendEmail } from "@/app/lib/email";
-import { recipients } from "@//recipients";
+import { recipients } from "@/recipients";
 
 function formatSummaryAsHTML(events: any[]) {
   return `
