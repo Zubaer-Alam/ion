@@ -5,7 +5,7 @@ export async function sendEmail(
   accessToken: string
 ) {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_GRAPH_API_ENDPOINT}/users/tickets@theattention.network/sendMail`,
+    `${process.env.NEXT_PUBLIC_GRAPH_API_ENDPOINT}/v1.0/users/tickets@theattention.network/sendMail`,
     {
       method: "POST",
       headers: {
