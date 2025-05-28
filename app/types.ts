@@ -22,6 +22,8 @@ export interface Task {
   assignments: Record<string, any>;
   assignedTo: User[];
   teamsLink?: string;
+  planId: string;
+  bucketId: string;
 }
 
 export interface TasksResponse {
