@@ -3,6 +3,13 @@ import { getApplicationToken } from "@/app/lib/auth";
 import { sendEmail } from "@/app/lib/email";
 import { recipients } from "@/recipients";
 
+const today = new Date().toLocaleDateString("en-GB", {
+  timeZone: "Asia/Dhaka",
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+});
+
 function formatSummaryAsHTML(events: any[]) {
   return `
     <style>
@@ -97,7 +104,12 @@ export async function GET(req: NextRequest) {
 
     for (const email of recipients) {
       try {
-        await sendEmail(email, "🎟️ Daily Event Summary", htmlMessage, token);
+        await sendEmail(
+          email,
+          `📢 Daily Event Summary for ${today} `,
+          htmlMessage,
+          token
+        );
         console.log(`✅ Email sent to ${email}`);
       } catch (err: any) {
         console.warn(`❌ Failed to send email to ${email}:`, err.message);
